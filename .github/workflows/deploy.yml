@@ -8,6 +8,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    # Make kubeconfig path explicit and shared by all steps
+    env:
+      KUBECONFIG: ${{ github.workspace }}/kubeconfig
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -17,22 +21,19 @@ jobs:
       with:
         version: 'latest'
 
-    - name: Create kubeconfig
+    - name: Write kubeconfig from secret
       run: |
-        echo "${{ secrets.K3S_KUBECONFIG }}" > kubeconfig
+        # Write the secret content into the kubeconfig file
+        printf '%s\n' "${{ secrets.K3S_KUBECONFIG }}" > "$KUBECONFIG"
 
-        kubectl config set-cluster default \
-          --server=https://15.206.90.221:6443 \
-          --kubeconfig=./kubeconfig \
-          --insecure-skip-tls-verify=true
-
-        chmod 600 kubeconfig
+    - name: Sanity check kubeconfig
+      run: |
+        echo "KUBECONFIG path: $KUBECONFIG"
+        kubectl config get-clusters
+        kubectl config view --minify
 
     - name: Deploy manifests
       run: |
-        KUBECONFIG=./kubeconfig kubectl apply --validate=false -f k8s/
-
-    - name: Verify rollout
-      run: |
-        KUBECONFIG=./kubeconfig kubectl get pods -n hello-namespace
-        KUBECONFIG=./kubeconfig kubectl get svc -n hello-namespace
+        kubectl apply --validate=false -f k8s/
+        kubectl get pods -n hello-namespace
+        kubectl get svc  -n hello-namespace
