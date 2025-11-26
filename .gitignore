@@ -1,0 +1,20 @@
+# Keys
+infra/k3s-key
+infra/k3s-key.pem
+infra/k3s-key.pub
+
+# Terraform state
+terraform.tfstate
+terraform.tfstate.backup
+infra/terraform.tfstate
+infra/terraform.tfstate.backup
+
+# User data
+user-data.sh
+infra/user-data.sh
+
+# Terraform local cache
+.terraform/
+.terraform.lock.hcl
+infra/.terraform/
+infra/.terraform.lock.hcl
